@@ -1,0 +1,5 @@
+
+media/clip1.mov
+*.mov
+.DS_Store
+media/
