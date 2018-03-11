@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 import os, sys, signal
 sys.path.insert(0, 'src')
@@ -44,7 +45,10 @@ class Application(tornado.web.Application):
             (r"/", IndexHandler),
             (r"/status", StatusHandler)
         ]
-        tornado.web.Application.__init__(self, handlers)
+        settings = dict(
+            static_path=os.path.join(os.path.dirname(__file__), "static")
+        )
+        tornado.web.Application.__init__(self, handlers, **settings)
         
 class IndexHandler(tornado.web.RequestHandler):
     def get(self):
@@ -56,14 +60,22 @@ class StatusHandler(tornado.web.RequestHandler):
         module = self.get_argument('module')
         if module:
             if module in modules:
+                status = modules[module]
                 lastCheckTs = modules[module]['ts']
-                status = modules[module]['status']
-                code = modules[module]['code']
-                self.finish(json.dumps({'last_alive':timestampMs()-lastCheckTs,\
-                                        'status': status,\
-                                        'code': code}))
+                status['last_alive'] = timestampMs()-lastCheckTs
+                self.finish(json.dumps(status))
                 return
         self.finish(json.dumps({'status': 'not found'}))
+
+def statusOk():
+    return { 'ts':timestampMs(), 'status':'ok', 'code': 0, 'face': '٩(^‿^)۶' }
+
+def statusNodata():
+    return { 'ts': timestampMs(), 'status':'no data', 'code':-1, 'face': 'ε(´סּ︵סּ`)з' }
+
+def statusError(err, msg):
+    return { 'ts': timestampMs(), 'status':'error', 'code':err, 'msg': msg, 'face': '(╥﹏╥)' }
+
 
 def udpDataWatcher(moduleName, port):
     global modules
@@ -71,58 +83,22 @@ def udpDataWatcher(moduleName, port):
     s.bind(("", port))
     fcntl.fcntl(s, fcntl.F_SETFL, os.O_NONBLOCK)
     s.settimeout(1)
-    modules[moduleName] = { 'ts': timestampMs(), 'status':'no data', 'code':-1 }
+    modules[moduleName] = statusNodata()
     print("Watching " + moduleName + ". Waiting on port:" + str(port))
     while active:
         try:
             data, addr = s.recvfrom(8192)
             data = data.rstrip("\0")
-            modules[moduleName] = { 'ts':timestampMs(), 'status':'ok', 'code': 0 }
+            modules[moduleName] = statusOk()
         except socket.error as e:
             err = e.args[0]
             if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
-                modules[moduleName] = { 'ts':timestampMs(), 'status':'no data', 'code': -1 }
+                modules[moduleName] = statusNodata()
                 sleep(1)
 
 def webServiceWatcher(moduleName, url):
     print("Watching "+ moduleName +". URL: "+url)
-
-def build_parser():
-    parser = ArgumentParser()
-    parser.add_argument('--checkpoint', type=str,
-                        dest='checkpoint_dir',
-                        help='dir or .ckpt file to load checkpoint from',
-                        metavar='CHECKPOINT', required=True)
-
-    parser.add_argument('--in-path', type=str,
-                        dest='in_path',help='dir or file to transform',
-                        metavar='IN_PATH', required=True)
-
-    help_out = 'destination (dir or file) of transformed file or files'
-    parser.add_argument('--out-path', type=str,
-                        dest='out_path', help=help_out, metavar='OUT_PATH',
-                        required=True)
-
-    parser.add_argument('--device', type=str,
-                        dest='device',help='device to perform compute on',
-                        metavar='DEVICE', default=DEVICE)
-
-    parser.add_argument('--batch-size', type=int,
-                        dest='batch_size',help='batch size for feedforwarding',
-                        metavar='BATCH_SIZE', default=BATCH_SIZE)
-
-    parser.add_argument('--allow-different-dimensions', action='store_true',
-                        dest='allow_different_dimensions', 
-                        help='allow different image dimensions')
-
-    return parser
-
-def check_opts(opts):
-    exists(opts.checkpoint_dir, 'Checkpoint not found!')
-    exists(opts.in_path, 'In path not found!')
-    if os.path.isdir(opts.out_path):
-        exists(opts.out_path, 'out dir not found!')
-        assert opts.batch_size > 0
+    modules[moduleName] = statusNodata()
 
 ####
 def signal_handler(signum, frame):
