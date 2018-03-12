@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
+
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>  
+    <!-- // <script src="/static/assets/js/bootstrap.min.js" type="text/javascript"></script> -->
+
+    <script>
+    window.setInterval(function(){
+    	$.ajax({
+               url: '/status',
+               type: 'GET',
+               data: { module: 'opt' },
+               
+               success: function(jsonResponse)
+               {
+                  var objresponse = JSON.parse(jsonResponse);
+                  console.log('response '+objresponse);
+                  $("#opt-status").text(objresponse['status'])
+                  $("#opt-lastupdate").text('Last update '+objresponse['last_alive'])
+               },
+               error: function()
+               {
+                  // $("#responsefield").text("Error to load api");
+                  console.log('error querying status');
+               }
+            })
+        $.ajax({
+               url: '/status',
+               type: 'GET',
+               data: { module: 'om' },
+               
+               success: function(jsonResponse)
+               {
+                  var objresponse = JSON.parse(jsonResponse);
+                  console.log('response '+objresponse);
+                  $("#om-status").text(objresponse['status'])
+                  $("#om-lastupdate").text('Last update '+objresponse['last_alive'])
+               },
+               error: function()
+               {
+                  // $("#responsefield").text("Error to load api");
+                  console.log('error querying status');
+               }
+            })
+    	$.ajax({
+               url: '/status',
+               type: 'GET',
+               data: { module: 'segmenter' },
+               
+               success: function(jsonResponse)
+               {
+                  var objresponse = JSON.parse(jsonResponse);
+                  console.log('response '+objresponse);
+                  $("#segmenter-status").text(objresponse['status'])
+                  $("#segmenter-lastupdate").text('Last update '+objresponse['last_alive'])
+               },
+               error: function()
+               {
+                  // $("#responsefield").text("Error to load api");
+                  console.log('error querying status');
+               }
+            })
+    	$.ajax({
+               url: '/status',
+               type: 'GET',
+               data: { module: 'styler' },
+               
+               success: function(jsonResponse)
+               {
+                  var objresponse = JSON.parse(jsonResponse);
+                  console.log('response '+objresponse);
+                  $("#styler-status").text(objresponse['status'])
+                  $("#styler-lastupdate").text('Last update '+objresponse['last_alive'])
+               },
+               error: function()
+               {
+                  // $("#responsefield").text("Error to load api");
+                  console.log('error querying status');
+               }
+            })
+		}, 500);
+    </script>
+
+	<title>♫ peetonn services (⌐■_■)</title>
+</head>
+
+<body>
+	<p><h1>System Status</h1></p>
+
+	<table style="width:100%">
+		<tr>
+			<th>OPT</th>
+			<th>Open Moves</th>
+			<th>Segmenter</th>
+			<th>Styler</th>
+		</tr>
+		<tr>
+			<th><span id="opt-status"></span></th> 
+			<th><span id="om-status"></span></th> 
+			<th><span id="segmenter-status"></span></th> 
+			<th><span id="styler-status"></span></th> 
+		</tr>
+		<tr>
+			<th><span id="opt-lastupdate"></span></th> 
+			<th><span id="om-lastupdate"></span></th> 
+			<th><span id="segmenter-lastupdate"></span></th> 
+			<th><span id="styler-lastupdate"></span></th> 
+		</tr>
+	</table>
+
+</body>
